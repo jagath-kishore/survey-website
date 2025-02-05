@@ -3,20 +3,602 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Survey with AI Analysis</title>
-    <link rel="stylesheet" href="style.css"> <!-- Link to your CSS file -->
+    <title>BackBuddy - AI Backlog Assistant</title>
+    <style>
+        /* Navigation Styles */
+        .nav-brand {
+            position: fixed;
+            top: 20px;
+            left: 30px;
+            font-size: 2em;
+            font-weight: bold;
+            text-decoration: none;
+            color: #4ecdc4;
+            z-index: 1000;
+            transition: all 0.3s ease;
+            text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+            background: rgba(255, 182, 193, 0.2);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        .team-link {
+            position: fixed;
+            top: 20px;
+            right: 30px;
+            font-size: 1.2em;
+            color: #ff6b6b;
+            text-decoration: none;
+            z-index: 1000;
+            background: rgba(173, 216, 230, 0.2);
+            padding: 5px 15px;
+            border-radius: 8px;
+        }
+
+        .nav-brand:hover, .team-link:hover {
+            transform: scale(1.05);
+        }
+
+        /* Background Theme */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0 0 60px 0;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: url('https://images.unsplash.com/photo-1532012197267-da84d127e765?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80') no-repeat center center/cover;
+            opacity: 0.9;
+            z-index: -1;
+        }
+
+        /* Homepage Styles */
+        #homepage {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .hero-text {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 40px;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+
+        .hero-text h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            color: #4ecdc4;
+        }
+        .hero-text .highlight-text {
+            font-size: 2.5em;
+            color: #ff6b6b;
+            display: block;
+            margin-top: 10px;
+        }
+
+        /* User Input Fields */
+        .user-input {
+            margin: 20px auto;
+            max-width: 400px;
+        }
+        .user-input input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #4ecdc4;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+        }
+
+        /* Questionnaire Styles */
+        #questionnaire-section {
+            display: none;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .question-card {
+            background: rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 800px;
+            backdrop-filter: blur(5px);
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .option-btn {
+            padding: 20px;
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            transition: all 0.3s ease;
+            text-align: left;
+        }
+
+        .option-btn:hover, .option-btn.selected {
+            background: #4ecdc4;
+            transform: scale(1.02);
+            box-shadow: 0 0 15px rgba(78, 205, 196, 0.5);
+        }
+
+        .special-concern textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #4ecdc4;
+            border-radius: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            color: white;
+            resize: vertical;
+            min-height: 100px;
+            margin-top: 10px;
+        }
+
+        /* Team Section */
+        #team-section {
+            display: none;
+            min-height: 100vh;
+            padding: 50px 20px;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .team-member {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px auto;
+            max-width: 500px;
+        }
+
+        /* Moving Quotes */
+        .marquee-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 15px 0;
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .marquee-text {
+            color: #FFB6C1;
+            font-size: 1.2em;
+            white-space: nowrap;
+            animation: marquee 25s linear infinite;
+            text-shadow: 0 0 10px rgba(78, 205, 196, 0.5);
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Result Styles */
+        .result-category {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        .result-category h3 {
+            color: #ff6b6b;
+            margin-top: 0;
+        }
+
+        /* Common Styles */
+        .nav-btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #ff6b6b;
+            color: white;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .nav-btn:hover {
+            background: #ff4757;
+            transform: scale(1.05);
+        }
+
+        h2 {
+            color: #4ecdc4;
+        }
+    </style>
 </head>
 <body>
-    <div id="questionnaire"></div>
-    <button id="prev-btn">Previous</button>
-    <button id="next-btn">Next</button>
-    <button id="submit-btn">Submit</button>
-    <div id="loading">Loading...</div>
-    <div id="result-section">
-        <h3 id="root-cause"></h3>
-        <p id="action-plan"></p>
+    <a href="#" class="nav-brand" onclick="showHomepage()">BackBuddy</a>
+    <a href="#" class="team-link" onclick="showTeam()">Team</a>
+
+    <!-- Homepage -->
+    <div id="homepage">
+        <div class="hero-text">
+            <h1>Got a Back?<br>It's Okay!!</h1>
+            <span class="highlight-text">WE got your BACK</span>
+            
+            <div class="user-input">
+                <input type="text" id="userName" placeholder="Enter your full name" required>
+                <input type="text" id="vitRegNo" placeholder="Enter VIT registration number" required>
+            </div>
+            
+            <button class="nav-btn" onclick="validateUser()">Start Analysis Now</button>
+        </div>
     </div>
 
-    <script src="script.js"></script> <!-- Link to your JavaScript file -->
+    <!-- Questionnaire Section -->
+    <div id="questionnaire-section">
+        <div class="question-card">
+            <div id="questionnaire"></div>
+            <div id="loading" style="display: none;">Analyzing your responses with AI...</div>
+            <div id="result-section" style="display: none;">
+                <h2>Analysis Results</h2>
+                <div id="root-cause" class="result-category"></div>
+                <div id="action-plan"></div>
+                <button class="nav-btn" onclick="showHomepage()">Return to Home</button>
+            </div>
+        </div>
+        <div id="button-container" style="text-align: center;">
+            <button id="prev-btn" class="nav-btn" onclick="prevQuestion()" style="display:none;">Previous</button>
+            <button id="next-btn" class="nav-btn" onclick="nextQuestion()">Next</button>
+            <button id="submit-btn" class="nav-btn" onclick="submitResponses()" style="display:none;">Analyze</button>
+        </div>
+    </div>
+
+    <!-- Team Section -->
+    <div id="team-section">
+        <div class="question-card">
+            <h2>AI Beans Team</h2>
+            <div class="team-member">
+                <h3>Mentor</h3>
+                <p>Prof. G Rajarajan</p>
+            </div>
+            <div class="team-member">
+                <h3>Frontend Developer</h3>
+                <p>Nihit Garg</p>
+            </div>
+            <div class="team-member">
+                <h3>Backend Developer</h3>
+                <p>Jagathkishore M M</p>
+            </div>
+            <button class="nav-btn" onclick="showHomepage()">Return to Home</button>
+        </div>
+    </div>
+
+    <!-- Moving Quotes -->
+    <div class="marquee-container">
+        <div class="marquee-text">
+            ★ "The beautiful thing about learning is that no one can take it away from you." ★ 
+            &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp; 
+            ★ "Don't let procrastination win!" ★ 
+            &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+            ★ "Slow progress is better than no progress at all." ★
+        </div>
+    </div>
+
+    <script>
+        // Navigation Functions
+        function showHomepage() {
+            document.getElementById('homepage').style.display = 'flex';
+            document.getElementById('questionnaire-section').style.display = 'none';
+            document.getElementById('team-section').style.display = 'none';
+        }
+
+        function showQuestionnaire() {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('questionnaire-section').style.display = 'block';
+            document.getElementById('team-section').style.display = 'none';
+            window.scrollTo(0, 0);
+        }
+
+        function showTeam() {
+            document.getElementById('homepage').style.display = 'none';
+            document.getElementById('questionnaire-section').style.display = 'none';
+            document.getElementById('team-section').style.display = 'block';
+            window.scrollTo(0, 0);
+        }
+
+        function validateUser() {
+            const name = document.getElementById('userName').value;
+            const regNo = document.getElementById('vitRegNo').value;
+            
+            if(name && regNo) {
+                showQuestionnaire();
+            } else {
+                alert('Please enter both your name and VIT registration number');
+            }
+        }
+
+        // Enhanced Questionnaire Logic
+        const questions = [
+            { 
+                text: "How many hours do you study per week outside of class?",
+                options: ["Less than 2 hours", "2-4 hours", "More than 4 hours"],
+                category: "student"
+            },
+            { 
+                text: "How often do you complete assignments on time?",
+                options: ["Always", "Sometimes", "Rarely"],
+                category: "student"
+            },
+            { 
+                text: "Do you follow a structured study plan?",
+                options: ["Yes regularly", "Sometimes", "No"],
+                category: "student"
+            },
+            { 
+                text: "How often do you procrastinate?",
+                options: ["Never", "Occasionally", "Frequently"],
+                category: "student"
+            },
+            {
+                text: "How many classes do you attend regularly?",
+                options: ["More than 80%", "50-80%", "Less than 50%"],
+                category: "student"
+            },
+            {
+                text: "How often do you revise topics before exams?",
+                options: ["Regularly", "Only before exams", "Hardly ever"],
+                category: "student"
+            },
+            {
+                text: "How well do you understand the instructor's teaching style?",
+                options: ["Very well", "Somewhat", "Not at all"],
+                category: "faculty"
+            },
+            {
+                text: "How approachable is your faculty for doubts and clarifications?",
+                options: ["Always available", "Sometimes available", "Not available at all"],
+                category: "faculty"
+            },
+            {
+                text: "Have the faculty provided adequate study resources?",
+                options: ["Yes, sufficient resources", "Somewhat adequate", "No, insufficient resources"],
+                category: "faculty"
+            },
+            {
+                text: "Does the faculty follow a structured and well-paced syllabus?",
+                options: ["Yes, very well-structured", "Somewhat structured", "No, disorganized"],
+                category: "faculty"
+            },
+            {
+                text: "How engaging are the classes?",
+                options: ["Very engaging", "Neutral", "Not engaging at all"],
+                category: "faculty"
+            },
+            {
+                text: "How frequently does the faculty conduct revision or doubt-solving sessions?",
+                options: ["Frequently", "Occasionally", "Rarely or never"],
+                category: "faculty"
+            },
+            {
+                text: "How difficult do you find this course compared to others?",
+                options: ["Very difficult", "Moderately difficult", "Not difficult"],
+                category: "course"
+            },
+            {
+                text: "Do you feel the syllabus is too vast for the given semester timeline?",
+                options: ["Yes, significantly", "Somewhat", "No, it's manageable"],
+                category: "course"
+            },
+            {
+                text: "Are there enough practical examples or hands-on activities?",
+                options: ["Yes, plenty", "Some", "No, very few"],
+                category: "course"
+            },
+            {
+                text: "Does the course require prior knowledge that you feel you lack?",
+                options: ["Yes, I struggle", "Somewhat, but manageable", "No, I'm comfortable"],
+                category: "course"
+            },
+            {
+                text: "How fair do you find the exams and grading system?",
+                options: ["Fair and transparent", "Somewhat biased", "Not fair at all"],
+                category: "course"
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let responses = Array(questions.length).fill().map(() => ({ answer: '', concern: '' }));
+
+        function displayQuestion() {
+            const questionnaire = document.getElementById("questionnaire");
+            questionnaire.innerHTML = 
+                `<h2>${questions[currentQuestionIndex].text}</h2>
+                <div class="options-container">
+                    ${questions[currentQuestionIndex].options.map(option => 
+                        `<button class="option-btn ${responses[currentQuestionIndex].answer === option ? 'selected' : ''}" 
+                                onclick="selectOption('${option}')">
+                            ${option}
+                        </button>`
+                    ).join('')}
+                </div>
+                <div class="special-concern">
+                    <label>Special Concerns:</label>
+                    <textarea oninput="updateConcern(this.value)">${responses[currentQuestionIndex].concern}</textarea>
+                </div>`;
+            
+            document.getElementById("prev-btn").style.display = currentQuestionIndex > 0 ? "inline-block" : "none";
+            document.getElementById("next-btn").style.display = currentQuestionIndex < questions.length - 1 ? "inline-block" : "none";
+            document.getElementById("submit-btn").style.display = currentQuestionIndex === questions.length - 1 ? "inline-block" : "none";
+        }
+
+        function selectOption(option) {
+            responses[currentQuestionIndex].answer = option;
+            displayQuestion();
+        }
+
+        function updateConcern(text) {
+            responses[currentQuestionIndex].concern = text;
+        }
+
+        function nextQuestion() {
+            if (responses[currentQuestionIndex].answer) {
+                currentQuestionIndex++;
+                displayQuestion();
+            } else {
+                alert("Please select an option");
+            }
+        }
+
+        function prevQuestion() {
+            currentQuestionIndex--;
+            displayQuestion();
+        }
+
+        function calculateScores() {
+            const scores = { student: 0, faculty: 0, course: 0 };
+            const negativeIndicators = ["Less than", "Rarely", "No", "Not", "Hardly", "Frequently", "insufficient", "disorganized"];
+
+            responses.forEach((response, index) => {
+                const question = questions[index];
+                const isNegative = negativeIndicators.some(indicator => 
+                    response.answer.includes(indicator)
+                );
+                if (isNegative) scores[question.category]++;
+            });
+            
+            return scores;
+        }
+
+        function generateAnalysis(scores) {
+            const maxScore = Math.max(...Object.values(scores));
+            const mainCauses = Object.entries(scores)
+                .filter(([_, score]) => score === maxScore)
+                .map(([category]) => category);
+
+            let causes = [];
+            if (mainCauses.includes('student')) {
+                causes.push('Time Management & Study Habits');
+            }
+            if (mainCauses.includes('faculty')) {
+                causes.push('Teaching Methods & Faculty Support');
+            }
+            if (mainCauses.includes('course')) {
+                causes.push('Course Difficulty & Structure');
+            }
+
+            return {
+                causes: causes.join(' + '),
+                scoreDetails: scores
+            };
+        }
+
+        function generateActionPlan(scores) {
+            let plan = [];
+            if (scores.student > 0) {
+                plan.push({
+                    title: "Student Improvement Plan",
+                    items: [
+                        "📅 Create a detailed weekly study schedule",
+                        "⏰ Use time management techniques like Pomodoro",
+                        "📝 Break down large tasks into smaller, manageable chunks",
+                        "📚 Prioritize difficult subjects and allocate more time to them",
+                        "🤝 Form study groups for collaborative learning"
+                    ]
+                });
+            }
+            if (scores.faculty > 0) {
+                plan.push({
+                    title: "Faculty Engagement Plan",
+                    items: [
+                        "📧 Reach out to faculty for additional resources or clarification",
+                        "🗓 Attend office hours regularly for doubt-solving",
+                        "📖 Provide feedback on teaching methods if possible",
+                        "👥 Collaborate with peers to share notes and insights"
+                    ]
+                });
+            }
+            if (scores.course > 0) {
+                plan.push({
+                    title: "Course Adaptation Plan",
+                    items: [
+                        "📘 Review syllabus and identify key topics for focus",
+                        "🔍 Seek additional resources like online tutorials or textbooks",
+                        "📊 Analyze past exam papers to understand patterns",
+                        "📝 Practice problem-solving and hands-on activities"
+                    ]
+                });
+            }
+            return plan;
+        }
+
+        function submitResponses() {
+            if (!responses[currentQuestionIndex].answer) {
+                alert("Please select an option for the last question.");
+                return;
+            }
+
+            document.getElementById("loading").style.display = "block";
+            document.getElementById("questionnaire").style.display = "none";
+            document.getElementById("button-container").style.display = "none";
+
+            setTimeout(() => {
+                const scores = calculateScores();
+                const analysis = generateAnalysis(scores);
+                const actionPlan = generateActionPlan(scores);
+
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("result-section").style.display = "block";
+
+                document.getElementById("root-cause").innerHTML = `
+                    <h3>Root Cause Analysis</h3>
+                    <p>Your backlog is primarily caused by: <strong>${analysis.causes}</strong></p>
+                    <p>Score Breakdown:</p>
+                    <ul>
+                        <li>Student Factors: ${scores.student}</li>
+                        <li>Faculty Factors: ${scores.faculty}</li>
+                        <li>Course Factors: ${scores.course}</li>
+                    </ul>
+                `;
+
+                const actionPlanHTML = actionPlan.map(plan => `
+                    <div class="result-category">
+                        <h3>${plan.title}</h3>
+                        <ul>
+                            ${plan.items.map(item => <li>${item}</li>).join('')}
+                        </ul>
+                    </div>
+                `).join('');
+
+                document.getElementById("action-plan").innerHTML = `
+                    <h3>Action Plan</h3>
+                    ${actionPlanHTML}
+                `;
+            }, 2000); // Simulate AI processing delay
+        }
+
+        // Initialize the first question
+        displayQuestion();
+    </script>
 </body>
 </html>
